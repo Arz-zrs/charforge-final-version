@@ -1,0 +1,21 @@
+package com.project.charforgefinal.service.impl.process;
+
+import com.project.charforgefinal.model.entity.character.PlayerCharacter;
+import com.project.charforgefinal.model.entity.inventory.InventoryItem;
+import com.project.charforgefinal.model.entity.item.EquipmentSlot;
+import com.project.charforgefinal.model.entity.item.Item;
+import com.project.charforgefinal.service.interfaces.process.IValidationService;
+
+public class ValidationService implements IValidationService {
+    @Override
+    public boolean canEquip(PlayerCharacter character, InventoryItem inventoryItem, EquipmentSlot targetSlot) {
+        Item item = inventoryItem.getItem();
+
+        // Items in MISC category cannot be equipped
+        if (item.getValidSlot() == EquipmentSlot.MISC) {
+            return false;
+        }
+        // Return slot validity value
+        return item.getValidSlot() == targetSlot;
+    }
+}

@@ -1,0 +1,109 @@
+package com.project.charforgefinal.dao.base;
+
+import com.project.charforgefinal.db.ConnectionProvider;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+public abstract class BaseDao<T> {
+    protected final ConnectionProvider connectionProvider;
+
+    protected BaseDao(ConnectionProvider connectionProvider) {
+        this.connectionProvider = connectionProvider;
+    }
+
+    protected abstract T mapRow(ResultSet result) throws SQLException;
+
+    // SELECT Operations, Returns multiple rows
+    protected List<T> queryList(Connection connection, String sql, StatementBinder binder) throws SQLException {
+        List<T> list = new ArrayList<>();
+        //noinspection SqlSourceToSinkFlow
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            binder.bind(statement);
+            try (ResultSet result = statement.executeQuery()) {
+                while (result.next()) {
+                    list.add(mapRow(result));
+                }
+            }
+        }
+        return list;
+    }
+    protected List<T> queryList(String sql, StatementBinder binder) {
+        try (Connection connection = connectionProvider.getConnection()) {
+            return queryList(connection, sql, binder);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // SELECT Operations, Returns a single row
+    protected T querySingle(String sql, StatementBinder binder) {
+
+        //noinspection SqlSourceToSinkFlow
+        try (Connection connection = connectionProvider.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            binder.bind(statement);
+            try (ResultSet result = statement.executeQuery()) {
+                if (result.next()) {
+                    return mapRow(result);
+                }
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return null;
+    }
+
+    // UPDATE, DELETE Operations
+    protected int executeUpdate(Connection connection, String sql, StatementBinder binder) throws SQLException {
+        // noinspection SqlSourceToSinkFlow
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            binder.bind(statement);
+            return statement.executeUpdate();
+        }
+    }
+    protected int executeUpdate(String sql, StatementBinder binder) {
+        try (Connection connection = connectionProvider.getConnection()) {
+            return executeUpdate(connection, sql, binder);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // INSERT operations
+    protected int executeInsert(Connection connection,String sql, StatementBinder binder) throws SQLException {
+        // noinspection SqlSourceToSinkFlow
+        try (PreparedStatement statement = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)){
+            binder.bind(statement);
+            statement.executeUpdate();
+            try (ResultSet keys = statement.getGeneratedKeys()) {
+                if (keys.next()) {
+                    return keys.getInt(1);
+                }
+            }
+            return -1;
+        }
+    }
+    protected int executeInsert(String sql, StatementBinder binder) {
+        try (Connection connection = connectionProvider.getConnection()){
+            return executeInsert(connection, sql, binder);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // Method that operates on SQL parameters
+    @FunctionalInterface
+    protected interface StatementBinder {
+        void bind(PreparedStatement statement) throws SQLException;
+        static StatementBinder empty() {
+            return _ -> {};
+        }
+    }
+}

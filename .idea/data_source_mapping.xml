@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DataSourcePerFileMappings">
+    <file url="file://$APPLICATION_CONFIG_DIR$/consoles/db/52a142f8-e06a-45bf-861b-f7cb79e8b5dc/console.sql" value="52a142f8-e06a-45bf-861b-f7cb79e8b5dc" />
+    <file url="file://$PROJECT_DIR$/src/main/resources/com/project/charforgefinal/data/charforge.sql" value="52a142f8-e06a-45bf-861b-f7cb79e8b5dc" />
+  </component>
+</project>

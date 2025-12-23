@@ -1,0 +1,60 @@
+package com.project.charforgefinal.dao.impl;
+
+import com.project.charforgefinal.dao.base.BaseDao;
+import com.project.charforgefinal.dao.interfaces.CharClassDao;
+import com.project.charforgefinal.db.ConnectionProvider;
+import com.project.charforgefinal.model.entity.character.AttackScaling;
+import com.project.charforgefinal.model.entity.character.CharClass;
+import com.project.charforgefinal.utils.Logs;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Optional;
+
+public class CharClassDaoImpl extends BaseDao<CharClass> implements CharClassDao {
+    public CharClassDaoImpl(ConnectionProvider connectionProvider) {
+        super(connectionProvider);
+    }
+
+    @Override
+    public List<CharClass> findAll() {
+        String sql = "SELECT * FROM classes";
+
+        return queryList(sql, StatementBinder.empty());
+    }
+
+    @Override
+    public Optional<CharClass> findById(int classId) {
+        String sql = "SELECT * FROM classes WHERE id = ?";
+
+        CharClass charClass = querySingle(
+                sql,
+                statement -> statement.setInt(1, classId)
+        );
+        return Optional.ofNullable(charClass);
+    }
+
+    @Override
+    protected CharClass mapRow(ResultSet result) throws SQLException {
+        String scalingStr = result.getString("attack_scaling");
+        AttackScaling scaling = AttackScaling.STR;
+
+        if (scalingStr != null) {
+            try {
+                scaling = AttackScaling.valueOf(scalingStr);
+            } catch (IllegalArgumentException e) {
+                Logs.printError("CharClassDao Error", e);
+            }
+        }
+        
+        return new CharClass(
+                result.getInt("id"),
+                result.getString("name"),
+                result.getInt("bonus_str"),
+                result.getInt("bonus_dex"),
+                result.getInt("bonus_int"),
+                scaling
+        );
+    }
+}
