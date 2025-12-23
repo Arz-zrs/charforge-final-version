@@ -8,7 +8,6 @@ import com.project.charforgefinal.service.interfaces.items.IEquipmentService;
 import com.project.charforgefinal.service.interfaces.process.IMessageService;
 import com.project.charforgefinal.service.interfaces.process.IValidationService;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -62,54 +61,27 @@ public class EquipmentService implements IEquipmentService {
                 "Error: " + instanceId + " " + slot.name(),
                 "Failed to equip item: " + newItem
         );
+
+    }
+
+    private InventoryItem findInventoryItem(PlayerCharacter character, int instanceId) {
+        return character.getInventory().stream()
+                .filter(i -> i.getInstanceId() == instanceId)
+                .findFirst()
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Item not found in character inventory: " + instanceId));
     }
 
     @Override
     public void unequip(PlayerCharacter character, int instanceId) {
-        // STRATEGI: APPEND TO BACK (Taruh di urutan paling belakang)
-        // Jika Anda ingin mengisi celah kosong (Front), ganti dengan method findFreeGridIndex(character)
-        int newGridIndex = findNextAvailableIndexAtEnd(character);
-
+        int newGridIndex = findFreeGridIndex(character);
         boolean success = inventoryDao.unequipItem(instanceId, newGridIndex);
-        if (!success) message.error("Error", "Failed to unequip item");
+        if (!success) message.error(
+                "Error: " + instanceId + " " + newGridIndex,
+                "Failed to unequip item"
+        );
     }
 
-    @Override
-    public boolean canEquip(PlayerCharacter character, int instanceId, EquipmentSlot targetSlot) {
-        InventoryItem item = character.getInventory()
-                .stream()
-                .filter(i -> i.getInstanceId() == instanceId)
-                .findFirst()
-                .orElse(null);
-
-        if (item == null) return false;
-
-        return validationService.canEquip(character, item, targetSlot);
-    }
-
-    @Override
-    public void autoSortInventory(PlayerCharacter character) {
-        List<InventoryItem> backpackItems = character.getInventory().stream()
-                .filter(i -> !i.isEquipped())
-                .sorted(
-                        // Sort based on Slot Type, then Name
-                        Comparator.comparing((InventoryItem i) -> i.getItem().getValidSlot())
-                                .thenComparing(i -> i.getItem().getName())
-                )
-                .toList();
-
-        // Reassign Grid
-        for (int i = 0; i < backpackItems.size(); i++) {
-            InventoryItem invItem = backpackItems.get(i);
-            // Update in DB
-            if (invItem.getGridIndex() != i) {
-                invItem.setGridIndex(i);
-                inventoryDao.unequipItem(invItem.getInstanceId(), i);
-            }
-        }
-    }
-
-    // Find front empty slot
     private int findFreeGridIndex(PlayerCharacter character) {
         Set<Integer> occupiedIndices = character.getInventory().stream()
                 .filter(i -> !i.isEquipped())
@@ -123,20 +95,16 @@ public class EquipmentService implements IEquipmentService {
         return candidate;
     }
 
-    // Find largest index + 1 to append back
-    private int findNextAvailableIndexAtEnd(PlayerCharacter character) {
-        return character.getInventory().stream()
-                .filter(i -> !i.isEquipped())
-                .mapToInt(InventoryItem::getGridIndex)
-                .max()
-                .orElse(-1) + 1;
-    }
-
-    private InventoryItem findInventoryItem(PlayerCharacter character, int instanceId) {
-        return character.getInventory().stream()
+    @Override
+    public boolean canEquip(PlayerCharacter character, int instanceId, EquipmentSlot targetSlot) {
+        InventoryItem item = character.getInventory()
+                .stream()
                 .filter(i -> i.getInstanceId() == instanceId)
                 .findFirst()
-                .orElseThrow(() ->
-                        new IllegalArgumentException("Item not found in character inventory: " + instanceId));
+                .orElse(null);
+
+        if (item == null) return false;
+
+        return validationService.canEquip(character, item, targetSlot);
     }
 }

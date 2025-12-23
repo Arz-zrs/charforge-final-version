@@ -9,4 +9,5 @@ public interface ICharacterInventoryService {
     List<InventoryItem> getInventory(PlayerCharacter character);
     void addItem(PlayerCharacter character, int itemId);
     void removeItem(PlayerCharacter character, int inventoryIndex);
+    void finalizeCharacter(PlayerCharacter character);
 }

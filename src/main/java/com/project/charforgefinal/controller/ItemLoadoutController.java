@@ -5,7 +5,6 @@ import com.project.charforgefinal.model.entity.character.PlayerCharacter;
 import com.project.charforgefinal.model.entity.inventory.InventoryItem;
 import com.project.charforgefinal.model.entity.item.Item;
 import com.project.charforgefinal.service.interfaces.characters.ICharacterInventoryService;
-import com.project.charforgefinal.service.interfaces.characters.ICharacterService;
 import com.project.charforgefinal.service.interfaces.items.IItemService;
 import com.project.charforgefinal.service.interfaces.process.IMessageService;
 import com.project.charforgefinal.service.interfaces.process.INavigationService;
@@ -47,7 +46,6 @@ public class ItemLoadoutController {
     private IItemService itemService;
     private ICharacterInventoryService characterInventoryService;
     private IStatCalculator statCalculator;
-    private ICharacterService creationService;
     private IMessageService message;
 
     public void injectDependencies(
@@ -55,14 +53,12 @@ public class ItemLoadoutController {
             IItemService itemService,
             ICharacterInventoryService characterInventoryService,
             IStatCalculator statCalculator,
-            ICharacterService creationService,
             IMessageService message
     ) {
         this.navigationService = navigationService;
         this.itemService = itemService;
         this.characterInventoryService = characterInventoryService;
         this.statCalculator = statCalculator;
-        this.creationService = creationService;
         this.message = message;
     }
 
@@ -255,7 +251,7 @@ public class ItemLoadoutController {
                     "Do you want to finalize your character?",
                     "You'll no longer be able to determine your equipment");
             if (success) {
-                if (character.getId() == 0) creationService.saveCharacterToDB(character);
+                characterInventoryService.finalizeCharacter(character);
                 navigationService.goToPaperDoll(character);
             }
         } catch (Exception e) {

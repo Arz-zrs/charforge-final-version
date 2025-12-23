@@ -62,31 +62,6 @@ public class AppControllerInitializer implements ControllerInitializer {
                                 itemService,
                                 characterInventoryService,
                                 statCalculator,
-                                characterService,
-                                messageService
-                        )
-        );
-    }
-
-    public AppControllerInitializer(
-            ICharacterService characterService,
-            IMessageService messageService
-    ) {
-
-        injector.put(MainMenuController.class,
-                (ControllerInjector<MainMenuController>) c ->
-                        c.injectDependencies(
-                                navigationService,
-                                characterService,
-                                messageService
-                        )
-        );
-
-        injector.put(CharacterCreationController.class,
-                (ControllerInjector<CharacterCreationController>) c ->
-                        c.injectDependencies(
-                                characterService,
-                                navigationService,
                                 messageService
                         )
         );

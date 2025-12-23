@@ -11,5 +11,4 @@ public interface IEquipmentService {
     boolean canEquip(PlayerCharacter character, int instanceId, EquipmentSlot targetSlot);
     void equip(PlayerCharacter character, int instanceId, EquipmentSlot slot);
     void unequip(PlayerCharacter character, int instanceId);
-    void autoSortInventory(PlayerCharacter character);
 }

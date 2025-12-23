@@ -48,12 +48,12 @@ public class Main extends Application {
         IMessageService messageService = new MessageService();
         IItemService itemService = new ItemService(itemDao);
         IInventoryService inventoryService = new InventoryService(inventoryDao, itemDao);
-        ICharacterInventoryService characterInventoryService = new CharacterInventoryService(inventoryService);
+        ICharacterService characterService = new CharacterService(characterDao, inventoryDao, raceDao, classDao);
+        ICharacterInventoryService characterInventoryService = new CharacterInventoryService(inventoryService, characterService);
         IValidationService validationService = new ValidationService();
         IEquipmentService equipmentService = new EquipmentService(inventoryDao, validationService, messageService);
         IEncumbranceService encumbranceService = new EncumbranceService();
         IStatCalculator statCalculator = new StatCalculator(encumbranceService);
-        ICharacterService characterService = new CharacterService(characterDao, inventoryDao, raceDao, classDao);
 
         // Controller Initialize
         AppControllerInitializer appInitializer =

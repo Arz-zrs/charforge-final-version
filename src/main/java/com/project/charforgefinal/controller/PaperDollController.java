@@ -20,8 +20,8 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.TilePane;
 
 import java.util.List;
 import java.util.Objects;
@@ -33,7 +33,7 @@ public class PaperDollController {
     @FXML private Label lblTotalStr, lblTotalDex, lblTotalInt, lblWeightVal;
     @FXML private Label lblHp, lblAp, lblAtk;
     @FXML private ProgressBar progressWeight;
-    @FXML private GridPane inventoryGrid;
+    @FXML private TilePane inventoryGrid;
 
     @FXML private StackPane slotHead, slotUtility, slotBody, slotMainHand, slotOffHand, slotLegs;
     @FXML private ImageView imgHead, imgUtility, imgBody, imgMainHand, imgOffHand, imgLegs;
@@ -41,7 +41,10 @@ public class PaperDollController {
     private static final double INV_SLOT_SIZE = 50.0;
     private static final double ICON_SIZE = 40.0;
     private static final double PROGRESS_BAR_CAP = 1.0;
-    private static final int GRID_SIZE = 10;
+    private static final int INVENTORY_CAPACITY = 30;
+    private static final int INVENTORY_COLUMNS = 10;
+    private static final int GRID_SIZE = 6;
+
 
     private PlayerCharacter character;
 
@@ -76,14 +79,30 @@ public class PaperDollController {
         clearAllSlots();
         inventoryGrid.getChildren().clear();
 
+        int rendered = 0;
+
         for (InventoryItem item : items) {
             if (item.isEquipped()) {
                 renderEquippedItem(item);
             } else {
                 renderInventoryItem(item);
+                rendered++;
             }
         }
+
+        // Fill remaining capacity with empty slots
+        for (int i = rendered; i < INVENTORY_CAPACITY; i++) {
+            inventoryGrid.getChildren().add(createEmptyInventorySlot());
+        }
     }
+
+
+    private StackPane createEmptyInventorySlot() {
+        StackPane slot = new StackPane();
+        slot.setPrefSize(INV_SLOT_SIZE, INV_SLOT_SIZE);
+        return slot;
+    }
+
 
     // Updates header label
     private void updateHeaderInfo(){
@@ -129,12 +148,14 @@ public class PaperDollController {
 
         ItemToolTipFactory.install(pane, inventoryItem.getItem());
 
-        inventoryGrid.add(pane, inventoryItem.getGridIndex() % GRID_SIZE, inventoryItem.getGridIndex() / GRID_SIZE);
+        inventoryGrid.getChildren().add(pane);
     }
 
     // Drag & Drop Logic
     // Drag (Source)
     private void enableDrag(Node node, InventoryItem item) {
+        if (item == null) return;
+
         node.setOnDragDetected(event -> {
             Dragboard db = node.startDragAndDrop(TransferMode.MOVE);
             ClipboardContent content = new ClipboardContent();
@@ -331,6 +352,10 @@ public class PaperDollController {
         setupSlotEvents(slotOffHand, EquipmentSlot.OFFHAND);
         setupSlotEvents(slotLegs, EquipmentSlot.LEGS);
         setupSlotEvents(slotUtility, EquipmentSlot.UTILITY);
+
+        inventoryGrid.setPrefColumns(INVENTORY_COLUMNS);
+        inventoryGrid.setHgap(GRID_SIZE);
+        inventoryGrid.setVgap(GRID_SIZE);
     }
 
     private void setupAutoHideLabel(StackPane slot, ImageView img) {
